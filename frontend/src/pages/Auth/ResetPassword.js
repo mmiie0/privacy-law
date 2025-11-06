@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// (★) import 함수 이름을 공용 이름으로 수정
+// (★) postNewPassword의 인자 개수가 늘어났습니다.
 import { sendVerificationCode, verifyCode, postNewPassword } from '../../api/auth';
 import './ResetPassword.css';
 
@@ -45,16 +45,18 @@ function ResetPassword() {
             // (★) verifyCode 공용 함수 사용
             const data = await verifyCode(email, code); 
             
-            // 응답에서 토큰을 추출하여 state에 저장
+            // (★) 응답에서 토큰을 추출하여 state에 저장
             if (data.token) {
                 setVerificationToken(data.token);
                 setIsLoading(false);
                 setStep(3); // 다음 단계로
             } else {
-                throw new Error("인증 토큰을 받지 못했습니다. (목업 오류)");
+                throw new Error("인증 토큰을 받지 못했습니다. (백엔드 응답 오류)");
             }
         } catch (err) {
             setIsLoading(false);
+            // (★) API 호출이 실패하면 토큰이 없으므로 verificationToken 초기화
+            setVerificationToken(null); 
             setError(err.message || "인증번호가 올바르지 않습니다.");
         }
     };
@@ -76,8 +78,8 @@ function ResetPassword() {
         
         setIsLoading(true);
         try {
-            // (★) API에 password와 token을 함께 전송
-            await postNewPassword(email, password, verificationToken);
+            // (★) API에 password, passwordConfirm, token을 모두 전송
+            await postNewPassword(email, password, passwordConfirm, verificationToken);
             setIsLoading(false);
             alert("비밀번호가 재설정되었습니다! 로그인 페이지로 이동합니다.");
             navigate('/login');
