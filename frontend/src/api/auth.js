@@ -12,18 +12,113 @@ const extractNameFromEmail = (email) => {
 };
 
 // ----------------------------------------------------------------
-// (2) 실제 API 연동 함수 (로그인 상태 확인, 로그아웃)
+// (2) 실제 API 연동 함수 (백엔드와 통신)
 // ----------------------------------------------------------------
 
 /**
- * [실제 API] 로그인 상태 확인 (GET /check)
+ * [실제 API] 1. 로그인 (POST /api/auth/login)
  */
-export const checkAuthStatus = async () => {
-    return apiFetch('/check');
+export const postLogin = async (email, password) => {
+    // API 호출
+    const response = await apiFetch('/auth/login', { 
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+    });
+    
+    // 백엔드가 이름 필드를 주지 않을 경우 대비 (AuthContext에서 사용됨)
+    if (!response.name) {
+        response.name = extractNameFromEmail(response.email);
+    }
+    return response;
 };
 
 /**
- * [실제 API] 로그아웃 (POST /logout)
+ * [실제 API] 2. 회원가입 (POST /api/auth/signup)
+ * (image_c15bdb.png 참조: password_confirm, token 포함)
+ */
+export const postSignUp = async (email, password, passwordConfirm, token) => {
+    const response = await apiFetch('/auth/signup', { 
+        method: 'POST',
+        body: JSON.stringify({ 
+            email, 
+            password, 
+            password_confirm: passwordConfirm, 
+            token 
+        })
+    });
+    
+    // 백엔드가 이름 필드를 주지 않을 경우 대비
+    if (!response.name) {
+        response.name = extractNameFromEmail(response.email);
+    }
+    return response;
+};
+
+/**
+ * [실제 API] 3. 인증번호 전송 (POST /api/auth/verification-code/send)
+ * (회원가입, 비밀번호 재설정 공용)
+ */
+export const sendVerificationCode = async (email) => {
+    // API 호출 (엔드포인트는 image_c15ba3.png와 image_c15c58.png의 경로를 조합하여 추론)
+    return apiFetch('/auth/verification-code/send', { 
+        method: 'POST',
+        body: JSON.stringify({ email })
+    });
+};
+
+/**
+ * [실제 API] 4. 인증번호 검증 (POST /api/auth/verification-code/verify)
+ * (image_c15ba3.png 참조)
+ * (성공 시, 3단계에 사용할 'token'을 응답으로 받을 것으로 가정)
+ */
+export async function verifyCode(email, code) { 
+    // input_number는 백엔드 요청 바디 키를 따라 추정
+    const response = await apiFetch('/auth/verification-code/verify', {
+        method: 'POST',
+        body: JSON.stringify({ 
+            email, 
+            input_number: code // image_c15ba3.png에서 input_number 사용
+        })
+    });
+    
+    // response가 토큰을 포함하고 있다고 가정
+    if (!response.token) {
+        // 토큰이 없으면 후속 재설정/회원가입 단계가 불가능하므로 오류 처리
+        throw new Error("인증은 성공했으나, 후속 처리를 위한 토큰을 받지 못했습니다.");
+    }
+    return response; 
+}
+
+/**
+ * [실제 API] 5. 비밀번호 재설정 (POST /api/auth/password/reset)
+ * (image_c15bfc.png 참조)
+ */
+export async function postNewPassword(email, password, passwordConfirm, token) {
+    // API 호출
+    const response = await apiFetch('/auth/password/reset', {
+        method: 'POST',
+        body: JSON.stringify({ 
+            email, 
+            password, 
+            password_confirm: passwordConfirm, // image_c15bfc.png 참조
+            token // image_c15bfc.png 참조
+        })
+    });
+    return response;
+}
+
+/**
+ * [실제 API] 6. 로그인 상태 확인 (GET /api/auth/me)
+ * (image_c15c3a.png 참조 - /check 대신 /auth/me 사용)
+ */
+export const checkAuthStatus = async () => {
+    return apiFetch('/auth/me');
+};
+
+
+/**
+ * [실제 API] 7. 로그아웃 (POST /api/auth/logout)
+ * (image_c15c58.png 참조)
  */
 export const logout = async () => { 
     try {
@@ -36,85 +131,3 @@ export const logout = async () => {
         throw error; 
     }
 };
-
-// ----------------------------------------------------------------
-// (3) 프론트엔드 테스트를 위한 임시 목업(Mock) 함수들
-// ----------------------------------------------------------------
-
-/**
- * [임시 목업] 로그인 API
- */
-export async function postLogin(email, password) {
-    console.log("[목업 API] 로그인 시도:", email);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (email === 'jiman0919@gmail.com' && password === '1234') {
-        const userName = extractNameFromEmail(email);
-        console.log("[목업 API] 로그인 성공!");
-        return { 
-            id: 1, 
-            email: email, 
-            name: userName
-        };
-    } else {
-        console.log("[목업 API] 로그인 실패: 아이디/비밀번호 틀림");
-        throw new Error("아이디 또는 비밀번호가 일치하지 않습니다. (목업)");
-    }
-}
-
-/**
- * [임시 목업] 최종 회원가입 API
- */
-export async function postSignUp(email, password) {
-    console.log(`[목업 API] 회원가입 시도: ${email}`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const userName = extractNameFromEmail(email);
-    return { 
-        id: 2, 
-        email: email,
-        name: userName
-    };
-}
-
-
-// (★) 공용 함수: 인증번호 전송
-/**
- * [임시 목업] 인증번호 전송 API (공용)
- */
-export async function sendVerificationCode(email) { 
-    console.log(`[목업 API] 인증번호 전송 시도: ${email}`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (!email.includes('@')) {
-        throw new Error("올바른 이메일 형식이 아닙니다. (목업)");
-    }
-    console.log(`[목업 API] ${email}로 인증번호 '123456' 전송 (한 척)`);
-    return { message: "Verification code sent." };
-}
-
-// (★) 공용 함수: 인증번호 검증
-/**
- * [임시 목업] 인증번호 검증 API (공용)
- * (테스트용 정답: '123456')
- */
-export async function verifyCode(email, code) { 
-    console.log(`[목업 API] 인증번호 검증 시도: ${email}, ${code}`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (code === '123456') {
-        // (★) 비밀번호 재설정을 위해 토큰을 반환합니다.
-        return { message: "Code verified.", token: "TEMP_RESET_TOKEN_123456" };
-    } else {
-        throw new Error("인증번호가 올바르지 않습니다. (목업)");
-    }
-}
-
-/**
- * [임시 목업] 새 비밀번호 설정 API (토큰 인자 유지)
- */
-export async function postNewPassword(email, password, token) {
-    console.log(`[목업 API] 새 비밀번호 설정: ${email}, 토큰: ${token}`);
-    if (token !== "TEMP_RESET_TOKEN_123456") {
-        throw new Error("유효하지 않은 재설정 토큰입니다. (목업)");
-    }
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return { message: "Password reset successful." };
-}
