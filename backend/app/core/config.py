@@ -3,21 +3,21 @@ from pydantic import computed_field
 
 class Settings(BaseSettings):
     # Redis 설정
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
+    REDIS_HOST: str = None
+    REDIS_PORT: int = None
 
     # SMTP 설정
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = "your_gmail@gmail.com"
-    SMTP_PASSWORD: str = "your_app_password"
+    SMTP_HOST: str = None
+    SMTP_PORT: int = None
+    SMTP_USER: str = None
+    SMTP_PASSWORD: str = None
 
     # MySQL 설정
-    RDB_USER: str = "admin"
-    RDB_PASSWORD: str = "your_rds_password"
-    RDB_HOST: str = "your-aws-rds-endpoint.ap-northeast-2.rds.amazonaws.com"
-    RDB_PORT: int = 3306
-    RDB_NAME: str = "your_db_name"
+    RDB_USER: str = None
+    RDB_PASSWORD: str = None
+    RDB_HOST: str = None
+    RDB_PORT: int = None
+    RDB_NAME: str = None
     
     @property
     @computed_field
