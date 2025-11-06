@@ -25,7 +25,7 @@ function ResetPassword() {
         setIsLoading(true);
         try {
             // (★) purpose 인자 추가
-            await sendVerificationCode(email, "resetpassword");
+            await sendVerificationCode(email, "reset-password");
             setIsLoading(false);
             setStep(2); 
         } catch (err) {
@@ -41,7 +41,7 @@ function ResetPassword() {
         setIsLoading(true);
         try {
             // (★) purpose 인자 추가
-            const data = await verifyCode(email, code, "resetpassword"); 
+            const data = await verifyCode(email, code, "reset-password"); 
             
             if (data.token) {
                 setVerificationToken(data.token);
