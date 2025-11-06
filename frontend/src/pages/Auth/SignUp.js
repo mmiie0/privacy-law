@@ -12,7 +12,6 @@ function SignUp() {
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
     
-    // (★추가) 2단계에서 받은 토큰을 저장할 state
     const [verificationToken, setVerificationToken] = useState(null); 
     
     const [error, setError] = useState('');
@@ -25,7 +24,8 @@ function SignUp() {
         setError('');
         setIsLoading(true);
         try {
-            await sendVerificationCode(email);
+            // (★) purpose 인자 추가
+            await sendVerificationCode(email, "signup");
             setIsLoading(false);
             setStep(2); 
         } catch (err) {
@@ -34,20 +34,19 @@ function SignUp() {
         }
     };
 
-    // 2단계: 인증번호 검증 (★수정)
+    // 2단계: 인증번호 검증
     const handleVerifyCode = async (e) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
         try {
-            // (★) API를 호출하고 응답(data)을 받음
-            const data = await verifyCode(email, code);
+            // (★) purpose 인자 추가
+            const data = await verifyCode(email, code, "signup");
             
-            // (★) 응답에서 토큰을 추출하여 state에 저장
             if (data.token) {
                 setVerificationToken(data.token);
                 setIsLoading(false);
-                setStep(3); // 다음 단계로
+                setStep(3); 
             } else {
                 throw new Error("인증 토큰을 받지 못했습니다.");
             }
@@ -57,7 +56,7 @@ function SignUp() {
         }
     };
 
-    // 3단계: 최종 회원가입 (★수정)
+    // 3단계: 최종 회원가입
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -74,7 +73,7 @@ function SignUp() {
         
         setIsLoading(true);
         try {
-            // (★) API에 passwordConfirm과 token을 함께 전송
+            // (★) API 명세에 맞게 passwordConfirm과 token을 함께 전송
             await postSignUp(email, password, passwordConfirm, verificationToken);
             setIsLoading(false);
             alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
@@ -101,7 +100,6 @@ function SignUp() {
             {/* --- 1단계: 이메일 입력 --- */}
             {step === 1 && (
                 <form onSubmit={handleSendCode} className="signup-form">
-                    {/* ... (input, button 동일) ... */}
                     <input type="email" className="signup-input" placeholder="이메일" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
                     <button type="submit" disabled={isLoading} className="signup-button">
                         {isLoading ? '전송 중...' : '인증번호 전송'}
@@ -112,7 +110,6 @@ function SignUp() {
             {/* --- 2단계: 인증번호 입력 --- */}
             {step === 2 && (
                 <form onSubmit={handleVerifyCode} className="signup-form">
-                    {/* ... (input, button 동일) ... */}
                     <p className="signup-info">{email}(으)로 전송된 인증번호를 입력하세요.</p>
                     <input type="text" className="signup-input" placeholder="인증번호 6자리" value={code} onChange={(e) => setCode(e.target.value)} required disabled={isLoading} />
                     <button type="submit" disabled={isLoading} className="signup-button">
@@ -121,7 +118,7 @@ function SignUp() {
                 </form>
             )}
 
-            {/* --- 3단계: 비밀번호 입력 (★수정) --- */}
+            {/* --- 3단계: 비밀번호 입력 --- */}
             {step === 3 && (
                 <form onSubmit={handleSubmit} className="signup-form">
                     <p className="signup-info">이메일: {email}</p>
@@ -138,8 +135,8 @@ function SignUp() {
                         type="password"
                         className="signup-input"
                         placeholder="비밀번호 확인"
-                        value={passwordConfirm} // (★) passwordConfirm state와 연결
-                        onChange={(e) => setPasswordConfirm(e.target.value)} // (★)
+                        value={passwordConfirm} 
+                        onChange={(e) => setPasswordConfirm(e.target.value)} 
                         required
                         disabled={isLoading}
                     />
@@ -150,7 +147,6 @@ function SignUp() {
             )}
 
             <div className="signup-links">
-                {/* ... (뒤로가기 버튼 동일) ... */}
                 <button onClick={handleGoBack} className="link-button">
                     {step > 1 ? '뒤로가기' : '로그인 페이지로'}
                 </button>
