@@ -12,21 +12,21 @@ const extractNameFromEmail = (email) => {
 };
 
 // ----------------------------------------------------------------
-// (2) 실제 API 연동 함수 (백엔드와 통신)
+// (2) 실제 API 연동 함수
 // ----------------------------------------------------------------
 
 /**
  * [실제 API] 1. 로그인 (POST /api/auth/login)
+ * (image_c15c1b.png 참조)
  */
 export const postLogin = async (email, password) => {
-    // API 호출
     const response = await apiFetch('/auth/login', { 
         method: 'POST',
         body: JSON.stringify({ email, password })
     });
     
     // 백엔드가 이름 필드를 주지 않을 경우 대비 (AuthContext에서 사용됨)
-    if (!response.name) {
+    if (response && !response.name && response.email) {
         response.name = extractNameFromEmail(response.email);
     }
     return response;
@@ -47,8 +47,7 @@ export const postSignUp = async (email, password, passwordConfirm, token) => {
         })
     });
     
-    // 백엔드가 이름 필드를 주지 않을 경우 대비
-    if (!response.name) {
+    if (response && !response.name && response.email) {
         response.name = extractNameFromEmail(response.email);
     }
     return response;
@@ -56,34 +55,35 @@ export const postSignUp = async (email, password, passwordConfirm, token) => {
 
 /**
  * [실제 API] 3. 인증번호 전송 (POST /api/auth/verification-code/send)
- * (회원가입, 비밀번호 재설정 공용)
+ * (★ 수정: 'purpose' 인자 추가)
  */
-export const sendVerificationCode = async (email) => {
-    // API 호출 (엔드포인트는 image_c15ba3.png와 image_c15c58.png의 경로를 조합하여 추론)
-    return apiFetch('/auth/verification-code/send', { 
+export async function sendVerificationCode(email, purpose) { 
+    return apiFetch('/auth/verification-code/send', {
         method: 'POST',
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ 
+            email, 
+            purpose // (★) "signup" 또는 "resetpassword"
+        })
     });
-};
+}
 
 /**
  * [실제 API] 4. 인증번호 검증 (POST /api/auth/verification-code/verify)
  * (image_c15ba3.png 참조)
- * (성공 시, 3단계에 사용할 'token'을 응답으로 받을 것으로 가정)
+ * (★ 수정: 'purpose' 인자 추가)
  */
-export async function verifyCode(email, code) { 
-    // input_number는 백엔드 요청 바디 키를 따라 추정
+export async function verifyCode(email, code, purpose) { 
     const response = await apiFetch('/auth/verification-code/verify', {
         method: 'POST',
         body: JSON.stringify({ 
             email, 
-            input_number: code // image_c15ba3.png에서 input_number 사용
+            input_number: code, // (★) API 명세에 따름
+            purpose // (★) "signup" 또는 "resetpassword"
         })
     });
     
-    // response가 토큰을 포함하고 있다고 가정
+    // 이 API는 응답으로 토큰을 반환해야 함 (SignUp/ResetPassword 로직 기반)
     if (!response.token) {
-        // 토큰이 없으면 후속 재설정/회원가입 단계가 불가능하므로 오류 처리
         throw new Error("인증은 성공했으나, 후속 처리를 위한 토큰을 받지 못했습니다.");
     }
     return response; 
@@ -94,24 +94,23 @@ export async function verifyCode(email, code) {
  * (image_c15bfc.png 참조)
  */
 export async function postNewPassword(email, password, passwordConfirm, token) {
-    // API 호출
-    const response = await apiFetch('/auth/password/reset', {
+    return apiFetch('/auth/password/reset', {
         method: 'POST',
-        body: JSON.stringify({ 
-            email, 
-            password, 
-            password_confirm: passwordConfirm, // image_c15bfc.png 참조
-            token // image_c15bfc.png 참조
+        body: JSON.stringify({
+            email,
+            password,
+            password_confirm: passwordConfirm, // (★) API 명세에 따름
+            token
         })
     });
-    return response;
 }
 
 /**
  * [실제 API] 6. 로그인 상태 확인 (GET /api/auth/me)
- * (image_c15c3a.png 참조 - /check 대신 /auth/me 사용)
+ * (image_c15c3a.png 참조)
  */
 export const checkAuthStatus = async () => {
+    // (★) /check 대신 /api/auth/me 사용
     return apiFetch('/auth/me');
 };
 
