@@ -1,0 +1,95 @@
+/* src/pages/Document/Document.css */
+
+/* --- (1) 전체 페이지 레이아웃 (Grid) --- */
+.doc-page-layout {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    background-color: #f4f7f6;
+}
+
+/* --- (2) Header 스타일 (고유 클래스) --- */
+.doc-header {
+    grid-row: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.doc-header-left .doc-app-logo { font-weight: bold; font-size: 20px; color: #333; }
+.doc-header-right { display: flex; align-items: center; gap: 15px; }
+
+.doc-icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
+
+/* <img> 태그 아이콘 스타일 (PNG/SVG 공용) */
+.header-icon {
+    width: 22px; 
+    height: 22px;
+}
+
+.doc-icon-button .doc-badge {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background-color: #f44336;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.doc-header .doc-logout-button { background-color: #007aff; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+.doc-header .doc-logout-button:hover { background-color: #0056b3; }
+
+
+/* --- (3) Main Content Wrapper (사이드바 + 콘텐츠) --- */
+.doc-main-wrapper {
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* --- (4) Sidebar 스타일 (고유 클래스) --- */
+.doc-sidebar {
+    grid-column: 1;
+    background-color: #ffffff;
+    border-right: 1px solid #eee;
+    padding: 20px 0;
+    overflow-y: auto;
+    max-height: 100%;
+}
+.doc-sidebar-header { padding: 0 20px 15px; border-bottom: 1px solid #eee; margin-bottom: 15px; }
+.doc-sidebar-header h3 { margin: 0; font-size: 16px; color: #555; }
+.doc-list { list-style: none; padding: 0; margin: 0; }
+.doc-list-button { width: 100%; text-align: left; padding: 10px 20px; background: none; border: none; cursor: pointer; font-size: 14px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-list-button:hover, .doc-list-button.active { background-color: #f0f0f0; }
+
+/* --- (5) 메인 콘텐츠 영역 (Document.js의 <main>) --- */
+.doc-content-area {
+    grid-column: 2;
+    padding: 20px;
+    background-color: #fcfcfc;
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+/* --- (6) Document.js 고유의 스타일 --- */
+.doc-content-area h2 {
+    color: #333;
+}
